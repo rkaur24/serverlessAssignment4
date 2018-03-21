@@ -1,0 +1,56 @@
+service: minidropbox
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  stage: dev
+  region: us-west-2
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - s3:*
+      Resource: "*"
+
+functions:
+  upload:
+    handler: upload.upload
+    events:
+      - s3: 
+          bucket: myminidropboxbucket
+          event: s3:ObjectCreated:*
+
+  delete:
+    handler: delete.delete
+    events:
+      - s3:
+          bucket: myminidropboxbucket
+          event: s3:ObjectRemoved:*
+
+
+resources:
+  Resources:
+    MinidropboxTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: mydropboxrecord
