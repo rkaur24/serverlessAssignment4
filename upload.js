@@ -3,6 +3,9 @@ const AWS = require('aws-sdk');
 const uuid = require('uuid');
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const s3 = new AWS.S3();
+const accountSid = '<TWILIO SID>';
+const authToken = '<TWILIO AUTH TOKEN>';
+const client = require('twilio')(accountSid, authToken);
 
 module.exports.upload = (event, context, callback) => {
   event.Records.forEach((record) => {
@@ -26,6 +29,13 @@ module.exports.upload = (event, context, callback) => {
         return;
       }
     });
+    
+    //Send message to Phone
+    client.messages.create({
+      from: '+16042109935',
+      to: '<YOUR MOBILE NUMBER>',
+      body: `${file} was added to your S3 bucket`
+    }).then((messsage) => console.log('Message has been sent successfully.'));
 
 });
 };
